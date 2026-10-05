@@ -25,15 +25,18 @@
         $.when(pt, obv).fail(onError);
 
         $.when(pt, obv).done(function(patient, obv) {
+          try {
           var byCodes = smart.byCodes(obv, 'code');
           var gender = patient.gender;
 
           var fname = '';
           var lname = '';
 
-          if (typeof patient.name[0] !== 'undefined') {
-            fname = patient.name[0].given.join(' ');
-            lname = patient.name[0].family.join(' ');
+          if (patient.name && patient.name[0]) {
+            var given = patient.name[0].given;
+            var family = patient.name[0].family;
+            fname = Array.isArray(given) ? given.join(' ') : (given || '');
+            lname = Array.isArray(family) ? family.join(' ') : (family || '');
           }
 
           var height = byCodes('8302-2');
@@ -61,6 +64,10 @@
           p.ldl = getQuantityValueAndUnit(ldl[0]);
 
           ret.resolve(p);
+          } catch (e) {
+            console.log('Processing error', e);
+            onError();
+          }
         });
       } else {
         onError();
